@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 from grimp import ImportGraph
 
+from ..adapters.graph import ImportGraphWithBFS
 from ..application import rendering
 from ..domain.contract import Contract, InvalidContractOptions, registry
 from . import output
@@ -27,6 +28,7 @@ def lint_imports(
     is_debug_mode: bool = False,
     show_timings: bool = False,
     verbose: bool = False,
+    use_bfs: bool = False,
 ) -> bool:
     """
     Analyse whether a Python package follows a set of contracts, and report on the results.
@@ -42,6 +44,7 @@ def lint_imports(
         show_timings:       whether to show the times taken to build the graph and to check
                             each contract.
         verbose:            if True, noisily output progress as it goes along.
+        use_bfs:            if True, use breadth-first search algorithm for finding import chains.
 
     Returns:
         True if the linting passed, False if it didn't.
@@ -51,7 +54,8 @@ def lint_imports(
     try:
         user_options = read_user_options(config_filename=config_filename)
         _register_contract_types(user_options)
-        report = create_report(user_options, limit_to_contracts, cache_dir, show_timings, verbose)
+        
+        report = create_report(user_options, limit_to_contracts, cache_dir, show_timings, verbose, use_bfs)
     except Exception as e:
         if is_debug_mode:
             raise e
@@ -97,6 +101,7 @@ def create_report(
     cache_dir: Union[str, None, Type[NotSupplied]] = NotSupplied,
     show_timings: bool = False,
     verbose: bool = False,
+    use_bfs: bool = False,
 ) -> Report:
     """
     Analyse whether a Python package follows a set of contracts, returning a report on the results.
@@ -119,6 +124,10 @@ def create_report(
     graph_building_duration = timer.duration_in_s
     output.verbose_print(verbose, f"Built graph in {graph_building_duration}s.")
 
+    if use_bfs:
+        output.verbose_print(verbose, "Using breadth-first search algorithm for finding import chains...")
+        graph = ImportGraphWithBFS(graph)
+    
     return _build_report(
         graph=graph,
         graph_building_duration=graph_building_duration,

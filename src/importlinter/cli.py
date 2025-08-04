@@ -37,6 +37,11 @@ EXIT_STATUS_ERROR = 1
     is_flag=True,
     help="Noisily output progress as we go along.",
 )
+@click.option(
+    "--use-bfs",
+    is_flag=True,
+    help="Use breadth-first search algorithm for finding import chains (prevents infinite loops).",
+)
 def lint_imports_command(
     config: Optional[str],
     contract: Tuple[str, ...],
@@ -45,6 +50,7 @@ def lint_imports_command(
     debug: bool,
     show_timings: bool,
     verbose: bool,
+    use_bfs: bool,
 ) -> int:
     """
     Check that a project adheres to a set of contracts.
@@ -57,6 +63,7 @@ def lint_imports_command(
         is_debug_mode=debug,
         show_timings=show_timings,
         verbose=verbose,
+        use_bfs=use_bfs,
     )
     sys.exit(exit_code)
 
@@ -69,6 +76,7 @@ def lint_imports(
     is_debug_mode: bool = False,
     show_timings: bool = False,
     verbose: bool = False,
+    use_bfs: bool = False,
 ) -> int:
     """
     Check that a project adheres to a set of contracts.
@@ -85,6 +93,7 @@ def lint_imports(
         show_timings:       whether to show the times taken to build the graph and to check
                             each contract.
         verbose:            if True, noisily output progress as it goes along.
+        use_bfs:            if True, use breadth-first search algorithm for finding import chains.
 
     Returns:
         EXIT_STATUS_SUCCESS or EXIT_STATUS_ERROR.
@@ -103,6 +112,7 @@ def lint_imports(
         is_debug_mode=is_debug_mode,
         show_timings=show_timings,
         verbose=verbose,
+        use_bfs=use_bfs,
     )
 
     if passed:

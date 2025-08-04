@@ -93,6 +93,7 @@ class ForbiddenContract(Contract):
                     }
 
                     if str(self.allow_indirect_imports).lower() == "true":
+                        print("!!!allow_indirect_imports")
                         chains = self._get_direct_chains(
                             source_module, forbidden_module, graph, self.as_packages  # type:ignore
                         )
@@ -103,6 +104,7 @@ class ForbiddenContract(Contract):
                             as_packages=self.as_packages,  # type:ignore
                         )
                     if chains:
+                        print("!!! got chains!")
                         is_kept = False
                         for chain in sorted(chains):
                             chain_data = []
