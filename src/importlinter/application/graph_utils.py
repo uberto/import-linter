@@ -11,7 +11,7 @@ def find_shortest_chains_breadth_first(
     importer: str, 
     imported: str, 
     as_packages: bool = True,
-    max_depth: int = 0  # Default no check for max depth
+    max_depth: int = 100
 ) -> Set[Tuple[str, ...]]:
     """
     Find the shortest import chains from importer to imported using breadth-first search.
@@ -38,11 +38,11 @@ def find_shortest_chains_breadth_first(
         node = path[-1]
         current_depth = len(path)
 
-        print("!!! node", node, "depth", current_depth)
+        # print("!!! node", node, "depth", current_depth)
         
         # If we've reached the target, add the path to chains
         if node == imported:
-            print("!!!target found", node)
+            print("!!!!!!!!!!!!!!!!!!!!! target found", node, path)
             chains.add(tuple(path))
             if shortest_depth is None:
                 shortest_depth = current_depth
@@ -54,7 +54,7 @@ def find_shortest_chains_breadth_first(
             continue
             
         # If we've reached max depth, skip this path
-        if 0 < max_depth < current_depth:
+        if max_depth < current_depth:
             print(f"!!! Skipping {node} at depth {current_depth} because we've reached max depth {max_depth}")
             continue
         
@@ -70,13 +70,13 @@ def find_shortest_chains_breadth_first(
             # and then find what each of those modules imports
             node_descendants = graph.find_descendants(node)
             modules_to_check = {node} | node_descendants
-            print(f"!!! Checking {len(modules_to_check)} modules in package '{node}': {list(modules_to_check)[:5]}...")
+            # print(f"!!! Checking {len(modules_to_check)} modules in package '{node}': {list(modules_to_check)[:5]}...")
             
             for module in modules_to_check:
                 if module in graph.modules:  # Only check if it's actually a module in the graph
                     imported_by_module = graph.find_modules_directly_imported_by(module)
                     next_modules.update(imported_by_module)
-                    print(f"!!! Module '{module}' imports: {imported_by_module}")
+                    # print(f"!!! Module '{module}' imports: {imported_by_module}")
         else:
             # Only consider direct imports between the specific modules
             if node in graph.modules:
@@ -86,14 +86,12 @@ def find_shortest_chains_breadth_first(
                 else:
                     next_modules = set()
         
-        print(f"!!! Found {len(next_modules)} modules imported by {node}: {next_modules}")
+        print(f"!!! Found {len(next_modules)} modules imported by {node}")
         
         for next_module in next_modules:
 
-            print("!!!next_module", next_module)
-            # Skip if this would create a cycle in the current path
+            # Skip if is a parent module of current node (cycle)
             if next_module in path:
-                print(f"!!! Skipping {next_module} because it would create a cycle")
                 continue
                 
             # Create a new path with this module
