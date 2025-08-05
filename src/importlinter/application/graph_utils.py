@@ -59,12 +59,32 @@ def find_shortest_chains_breadth_first(
             continue
         
         # Get all modules directly imported by this node
+        # print(f"!!! Available graph methods: {[m for m in dir(graph) if 'find' in m.lower()]}")
+        # print(f"!!! Graph modules: {list(graph.modules)[:10]}...")  # Show first 10 modules
+        # print(f"!!! Looking for imports from node: '{node}'")
+        #
+        next_modules = set()
+        
         if as_packages:
-            next_modules = graph.find_modules_directly_imported_by(node)
+            # When as_packages=True, we need to expand the node to all modules in the package
+            # and then find what each of those modules imports
+            node_descendants = graph.find_descendants(node)
+            modules_to_check = {node} | node_descendants
+            print(f"!!! Checking {len(modules_to_check)} modules in package '{node}': {list(modules_to_check)[:5]}...")
+            
+            for module in modules_to_check:
+                if module in graph.modules:  # Only check if it's actually a module in the graph
+                    imported_by_module = graph.find_modules_directly_imported_by(module)
+                    next_modules.update(imported_by_module)
+                    print(f"!!! Module '{module}' imports: {imported_by_module}")
         else:
             # Only consider direct imports between the specific modules
-            next_modules = [m for m in graph.find_modules_directly_imported_by(node)
-                           if m == imported]
+            if node in graph.modules:
+                next_modules = set(graph.find_modules_directly_imported_by(node))
+                if imported in next_modules:
+                    next_modules = {imported}
+                else:
+                    next_modules = set()
         
         print(f"!!! Found {len(next_modules)} modules imported by {node}: {next_modules}")
         
