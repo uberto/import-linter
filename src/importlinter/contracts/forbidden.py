@@ -126,9 +126,11 @@ class ForbiddenContract(Contract):
                 if verbose:
                     chain_count = len(subpackage_chain_data["chains"])
                     pluralized = "s" if chain_count != 1 else ""
+                    # Use integer seconds in verbose output for stability
+                    duration_ms = getattr(timer, "duration_in_ms", int(timer.duration_in_s * 1000))
+                    duration_s = duration_ms // 1000
                     output.print(
-                        f"Found {chain_count} illegal chain{pluralized} "
-                        f"in {timer.duration_in_s}s.",
+                        f"Found {chain_count} illegal chain{pluralized} in {duration_s}s.",
                     )
 
         # Sorting by upstream and downstream module ensures that the output is deterministic

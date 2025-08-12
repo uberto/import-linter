@@ -34,7 +34,10 @@ class Timer(abc.ABC):
     ) -> None:
         end = self.get_current_time()
         start = self._start_stack.pop()
+        # Keep integer seconds for backward compatibility in verbose logs
         self.duration_in_s = int(end - start)
+        # Primary integer duration used elsewhere (milliseconds)
+        self.duration_in_ms = int(round((end - start) * 1000))
 
     @abc.abstractmethod
     def get_current_time(self) -> float:

@@ -116,8 +116,11 @@ def create_report(
             exclude_type_checking_imports=exclude_type_checking_imports,
             verbose=verbose,
         )
-    graph_building_duration = timer.duration_in_s
-    output.verbose_print(verbose, f"Built graph in {graph_building_duration}s.")
+    # Store durations as integer milliseconds for rendering; keep verbose as integer seconds
+    graph_building_duration = getattr(timer, "duration_in_ms", int(timer.duration_in_s * 1000))
+    # Calculate integer seconds for verbose output (flake8 E226 spacing compliant)
+    seconds_taken = graph_building_duration // 1000
+    output.verbose_print(verbose, f"Built graph in {seconds_taken}s.")
 
     return _build_report(
         graph=graph,
@@ -199,9 +202,10 @@ def _build_report(
             # other contract checks.
             copy_of_graph = deepcopy(graph)
             check = contract.check(copy_of_graph, verbose=verbose)
-        report.add_contract_check(contract, check, duration=timer.duration_in_s)
+        duration_ms = getattr(timer, "duration_in_ms", int(timer.duration_in_s * 1000))
+        report.add_contract_check(contract, check, duration=duration_ms)
         if verbose:
-            rendering.render_contract_result_line(contract, check, duration=timer.duration_in_s)
+            rendering.render_contract_result_line(contract, check, duration=duration_ms)
 
     output.verbose_print(verbose, newline=True)
     return report
